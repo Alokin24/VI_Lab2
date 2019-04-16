@@ -1,5 +1,3 @@
-
-#Starter kod
 import bisect
 
 
@@ -158,8 +156,7 @@ class Node:
         :return: листа од состојби
         :rtype: list
         """
-        # changed to -1
-        return [node.state for node in self.path()[-1]]
+        return [node.state for node in self.path()[0:]]
 
     def path(self):
         """Врати ја листата од јазли што го формираат патот од коренот до овој јазол.
@@ -300,7 +297,7 @@ class PriorityQueue(Queue):
                       со максимална f(x).
         :param f: функција f(x)
         """
-        assert order in [min, max]
+        assert order in [min, 1000]
         self.data = []
         self.order = order
         self.f = f
@@ -333,8 +330,8 @@ class PriorityQueue(Queue):
             if item == key:
                 self.data.pop(i)
 
-import sys
 
+import sys
 
 """
 Неинформирано пребарување во рамки на дрво.
@@ -398,19 +395,12 @@ def graph_search(problem, fringe):
         node = fringe.pop()
         if problem.goal_test(node.state):
             return node
-        # if node.state not in closed:
-        #     closed.add(node.state)
-        #     fringe.extend(node.expand(problem))
 
-        # fix na bug so navrakanje na ist state
-        # se sluchuva zaradi drugi memoriski adresi, a isti vrednosti na objektite od tipot Prepreka
-        # bez razlika shto imaat isti vrednosti, python gi sporeduva memoriski adresi
-        # mozhno e reshenie i so implementacija na funkcijata __eq__()
-        state = (node.state[0], (node.state[1].preprekaX1, node.state[1].preprekaY1), (node.state[2].preprekaX1, node.state[2].preprekaY1), (node.state[3].preprekaX1, node.state[3].preprekaY1))
 
-        if state not in closed:
-            closed.add(state)
+        if str(node.state) not in closed:
+            closed.add(str(node.state))
             fringe.extend(node.expand(problem))
+
 
     return None
 
@@ -468,143 +458,89 @@ def uniform_cost_search(problem):
                                                a.path_cost < b.path_cost))
 
 
-# Vasiot kod pisuvajte go pod ovoj komentar
+class CrnoBelo(Problem):
 
+    def __init__(self, n, initial):
+        goal = []
+        for i in range(0, n):
+            row = []
+            for j in range(0, n):
+                row.append(1)
 
-class Prepreka:
+            goal.append(row)
 
-    # koristi goren lev agol za pretstavuvanje na pozicija
+        # print(goal)
 
+        matrixOfState = []
+        for i in range(0, n):
+            row = []
+            for j in range(0, n):
+                row.append(initial[i*n+j])
 
-    def __init__(self, preprekaX1, preprekaY1, preprekaX2, preprekaY2, prostorX1, prostorY1, prostorX2, prostorY2, deltaX, deltaY):
-        """
-        :param prostorX1: redica vo koja e goren lev agol na preprekata
-        :param prostorY1: kolona vo koja e goren lev agol na preprekata
-        :param prostorX2: redica vo koja e dolniot desen agol na preprekata
-        :param prostorY2: kolona vo koja e dolniot desen agol na preprekata
-        :param prostorX1: redica vo koja e goren lev agol na prostorot vo koj mozhe da se dvizhi
-        :param prostorY1: kolona vo koja e goren lev agol na prostorot vo koj mozhe da se dvizhi
-        :param prostorX2: redica vo koja e dolniot desen agol na prostorot vo koj mozhe da se dvizhi
-        :param prostorY2: kolona vo koja e dolniot desen agol na prostorot vo koj mozhe da se dvizhi
-        :param deltaX: za eden moment kolku pozicii po x-oska se pridvizhuva
-        :param deltaY: vo eden moment kolku pozicii po y-oska se pridvizhuva
-        """
+            matrixOfState.append(row)
 
-        self.preprekaX1 = preprekaX1
-        self.preprekaY1 = preprekaY1
-        self.preprekaX2 = preprekaX2
-        self.preprekaY2 = preprekaY2
+        # print(matrixOfState)
 
-        self.deltaX = deltaX
-        self.deltaY = deltaY
-
-        self.prostorX1 = prostorX1
-        self.prostorY1 = prostorY1
-        self.prostorX2 = prostorX2
-        self.prostorY2 = prostorY2
-
-    def move(self):
-        """
-
-        :return: new object of type Prepreka
-        """
-        deltaX = self.deltaX
-        deltaY = self.deltaY
-
-        if self.preprekaX1 == self.prostorX1\
-            or self.preprekaX2 == self.prostorX2\
-            or self.preprekaX1 == self.prostorX2\
-            or self.preprekaX2 == self.prostorX1:
-                deltaX *= -1
-
-        if self.preprekaY1 == self.prostorY1 \
-            or self.preprekaY2 == self.prostorY2\
-            or self.preprekaY1 == self.prostorY2\
-            or self.preprekaY1 == self.prostorY1:
-            deltaY *= -1
-
-        return Prepreka(self.preprekaX1 + deltaX, self.preprekaY1 + deltaY,
-                        self.preprekaX2 + deltaX, self.preprekaY2 + deltaY,
-                        self.prostorX1, self.prostorY1, self.prostorX2, self.prostorY2,
-                        deltaX, deltaY)
-
-    def hitChoveche(self, choveche):
-        return (choveche[0] >= self.preprekaX1 and choveche[0] <= self.preprekaX2 and choveche[1] >= self.preprekaY1 and choveche[1] <= self.preprekaY2)
-
-    def __str__(self):
-        l = [self.preprekaX1, self.preprekaY1, self.preprekaX2, self.preprekaY2]
-        return str(l)
-
-    def __eq__(self, other):
-        return self.preprekaX1 == other.preprekaX1 and \
-               self.preprekaX2 == other.preprekaX2 and \
-               self.preprekaY1 == other.preprekaY2 and \
-               self.preprekaY2 == other.preprekaY2
-
-
-class PodvizniPrepreki(Problem):
-    # za prepreki chuvame goren lev agol
-    def __init__(self, choveche = (0, 0), kukja = (10, 10)):
-        prepreka1 = Prepreka(2, 2, 2, 3, 2, 0, 2, 5, 0, -1)
-        prepreka2 = Prepreka(7, 2, 8, 3, 5, 0, 10, 5, -1, 1)
-        prepreka3 = Prepreka(7, 8, 8, 8, 5, 8, 10, 8, 1, 0)
-        initial = (choveche, prepreka1, prepreka2, prepreka3, "")
-        super().__init__(initial, kukja)
+        super().__init__(matrixOfState, goal)
 
     def goal_test(self, state):
-        g = self.goal
-        choveche = state[0]
+        """Врати True ако state е целна состојба. Даденава имплементација
+        на методот директно ја споредува state со self.goal, како што е
+        специфицирана во конструкторот. Имплементирајте го овој метод ако
+        проверката со една целна состојба self.goal не е доволна.
 
-        return (g[0] == choveche[0] and g[1] == choveche[1])
+        :param state: дадена состојба
+        :return: дали дадената состојба е целна состојба
+        :rtype: bool
+        """
+        # print(state)
+        return state == self.goal
 
     def successor(self, state):
-        choveche = state[0]
-        prepreka1 = state[1]
-        prepreka2 = state[2]
-        prepreka3 = state[3]
+        """За дадена состојба, врати речник од парови {акција : состојба}
+        достапни од оваа состојба. Ако има многу следбеници, употребете
+        итератор кој би ги генерирал следбениците еден по еден, наместо да
+        ги генерирате сите одеднаш.
+
+        :param state: дадена состојба
+        :return:  речник од парови {акција : состојба} достапни од оваа
+                  состојба
+        :rtype: dict
+        """
+        succ = {}
+
+        dx = [1, -1, 0, 0]
+        dy = [0, 0, 1, -1]
+
+        for i in range(0, n):
+
+            for j in range(0, n):
+
+                # tmp = state.copy()
+
+                tmp = []
+
+                for row in state:
+                    tmpRow = []
+                    for e in row:
+                        tmpRow.append(e)
+                    tmp.append(tmpRow)
+
+                tmp[i][j] = 1 - tmp[i][j]
 
 
-        sucessors = {}
 
-        prepreka1 = prepreka1.move()
-        prepreka2 = prepreka2.move()
-        prepreka3 = prepreka3.move()
+                for z in range(0, 4):
+                    if i + dx[z] >= 0 and i + dx[z] < n and j + dy[z] >= 0 and j + dy[z] < n:
+                        tmp[i + dx[z]][j + dy[z]] = 1 - tmp[i+dx[z]][j+dy[z]]
 
-        # print(choveche)
-
-        desnoChoveche = (choveche[0], choveche[1] + 1)
-        levoChoveche = (choveche[0], choveche[1] - 1)
-        goreChoveche = (choveche[0] - 1, choveche[1])
-        doleChoveche = (choveche[0] + 1, choveche[1])
-
-        def ispadaChoveche(choveche):
-            if (choveche[0] < 0 or choveche[0] > 10):
-                return True
-
-            if (choveche[1] < 0 or choveche[1] > 10):
-                return True
-
-            if choveche[0] >= 0 and choveche[0] <= 4:
-                if choveche[1] >= 0 and choveche[1] <= 5:
-                    return False
-                return True
+                s = "x: " + str(i) + ", y: " + str(j)
 
 
-        if (not ispadaChoveche(desnoChoveche) and not prepreka1.hitChoveche(desnoChoveche) and not prepreka2.hitChoveche(desnoChoveche) and not prepreka3.hitChoveche(desnoChoveche)) :
-            sucessors['Desno'] = (desnoChoveche, prepreka1, prepreka2, prepreka3, "Desno")
+                succ[str(s)] = tmp
 
-        if (not ispadaChoveche(doleChoveche) and not prepreka1.hitChoveche(doleChoveche) and not prepreka2.hitChoveche(doleChoveche) and not prepreka3.hitChoveche(doleChoveche)) :
-            sucessors['Dolu'] = (doleChoveche, prepreka1, prepreka2, prepreka3, "Dolu")
-
-        if (not ispadaChoveche(levoChoveche) and not prepreka1.hitChoveche(levoChoveche) and not prepreka2.hitChoveche(levoChoveche) and not prepreka3.hitChoveche(levoChoveche)) :
-            sucessors['Levo'] = (levoChoveche, prepreka1, prepreka2, prepreka3, "Levo")
-
-        if (not ispadaChoveche(goreChoveche) and not prepreka1.hitChoveche(goreChoveche) and not prepreka2.hitChoveche(goreChoveche) and not prepreka3.hitChoveche(goreChoveche)):
-            sucessors['Gore'] = (goreChoveche, prepreka1, prepreka2, prepreka3, "Gore")
-
-
-        return sucessors
-
+        # print(succ)
+        return succ
 
     def actions(self, state):
         return self.successor(state).keys()
@@ -613,42 +549,46 @@ class PodvizniPrepreki(Problem):
         possible = self.successor(state)
         return possible[action]
 
+    def path_cost(self, c, state1, action, state2):
+        """Врати ја цената на решавачкиот пат кој пристигнува во состојбата
+        state2 од состојбата state1 преку акцијата action, претпоставувајќи
+        дека цената на патот до состојбата state1 е c. Ако проблемот е таков
+        што патот не е важен, оваа функција ќе ја разгледува само состојбата
+        state2. Ако патот е важен, ќе ја разгледува цената c и можеби и
+        state1 и action. Даденава имплементација му доделува цена 1 на секој
+        чекор од патот.
 
-# Vcituvanje na vleznite argumenti za test primerite
+        :param c: цена на патот до состојбата state1
+        :param state1: дадена моментална состојба
+        :param action: акција која треба да се изврши
+        :param state2: состојба во која треба да се стигне
+        :return: цена на патот по извршување на акцијата
+        :rtype: float
+        """
+        return c + 1
 
-choveche_redica = int(input())
-choveche_kolona = int(input())
-kukja_redica = int(input())
-kukja_kolona = int(input())
+    def value(self):
+        """За проблеми на оптимизација, секоја состојба си има вредност. 
+        Hill-climbing и сличните алгоритми се обидуваат да ја максимизираат
+        оваа вредност.
 
-reprezentacija = PodvizniPrepreki((choveche_redica, choveche_kolona), (kukja_redica, kukja_kolona))
+        :return: вредност на состојба
+        :rtype: float
+        """
+        return 1
 
+
+
+
+
+n = int(input())
+polinja = list(map(int, input().split(',')))
+
+reprezentacija = CrnoBelo(n, polinja)
 
 print(breadth_first_graph_search(reprezentacija).solution())
-# answer = breadth_first_graph_search(reprezentacija).solve()
-#
-# answerList = []
-#
-# for step in answer:
-#     if step[4] != "":
-#         answerList += [step[4]]
-#
-# print(answerList)
 
-# testiranje na prepreka1
-#     prepreka1 = Prepreka(2, 2, 2, 3, 2, 0, 2, 5, 0, -1)
-#     for i in range(0, 20):
-#         print(prepreka1)
-#         prepreka1 = prepreka1.move()
-
-# testiranje na prepreka2
-#     prepreka2 = Prepreka(7, 2, 8, 3, 5, 0, 10, 5, -1, 1)
-#     for i in range(0, 25):
-#         print(prepreka2)
-#         prepreka2 = prepreka2.move()
-
-# testiranje na prepreka3
-#     prepreka3 = Prepreka(7, 8, 8, 8, 5, 8, 10, 8, 1, 0)
-#     for i in range(0, 20):
-#         print(prepreka3)
-#         prepreka3 = prepreka3.move()
+# a = [1, 2, 3]
+# b = a.copy()
+# b[0] = 5
+# print(a)
