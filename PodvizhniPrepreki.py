@@ -158,7 +158,8 @@ class Node:
         :return: листа од состојби
         :rtype: list
         """
-        return [node.state for node in self.path()[0:]]
+        # changed to -1
+        return [node.state for node in self.path()[-1]]
 
     def path(self):
         """Врати ја листата од јазли што го формираат патот од коренот до овој јазол.
@@ -613,7 +614,6 @@ class PodvizniPrepreki(Problem):
         return possible[action]
 
 
-
 # Vcituvanje na vleznite argumenti za test primerite
 
 choveche_redica = int(input())
@@ -623,15 +623,17 @@ kukja_kolona = int(input())
 
 reprezentacija = PodvizniPrepreki((choveche_redica, choveche_kolona), (kukja_redica, kukja_kolona))
 
-answer = breadth_first_graph_search(reprezentacija).solve()
 
-answerList = []
-
-for step in answer:
-    if step[4] != "":
-        answerList += [step[4]]
-
-print(answerList)
+print(breadth_first_graph_search(reprezentacija).solve())
+# answer = breadth_first_graph_search(reprezentacija).solve()
+#
+# answerList = []
+#
+# for step in answer:
+#     if step[4] != "":
+#         answerList += [step[4]]
+#
+# print(answerList)
 
 # testiranje na prepreka1
 #     prepreka1 = Prepreka(2, 2, 2, 3, 2, 0, 2, 5, 0, -1)
